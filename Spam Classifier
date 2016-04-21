@@ -1,0 +1,76 @@
+'''tutorial link : http://radimrehurek.com/data_science_python/ '''
+
+import os
+os.chdir("C:\\Users\\509861\\Downloads")
+
+import pandas as pd
+messages = pd.read_csv("SMSSpamCollection",sep="\t",names= ['label','message'])
+
+messages['length'] = messages.message.map(lambda text:len(text))
+
+from textblob import TextBlob
+
+def split_into_lemmas(message):
+    message = unicode(message, 'utf8').lower()
+    words = TextBlob(message).words
+    # for each word, take its "base form" = lemma 
+    return [word.lemma for word in words]
+
+messages.message.head().apply(split_into_lemmas)
+
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+
+bow_transformer = CountVectorizer(analyzer=split_into_lemmas).fit(messages['message'])
+
+messages_bow = bow_transformer.transform(messages['message'])
+
+tfidf_transformer = TfidfTransformer().fit(messages_bow)
+
+messages_tfidf = tfidf_transformer.transform(messages_bow)
+
+from sklearn.naive_bayes import MultinomialNB
+
+spam_detector = MultinomialNB().fit(messages_tfidf, messages['label'])
+
+all_predictions = spam_detector.predict(messages_tfidf)
+
+from sklearn.metrics import classification_report, f1_score, accuracy_score, confusion_matrix
+accuracy_score(messages['label'], all_predictions)
+confusion_matrix(messages['label'], all_predictions)
+
+#accuracy graph
+plt.matshow(confusion_matrix(messages['label'], all_predictions), cmap=plt.cm.binary, interpolation='nearest')
+plt.title('confusion matrix')
+plt.colorbar()
+plt.ylabel('expected label')
+plt.xlabel('predicted label')
+
+#From this confusion matrix, we can compute precision and recall, or their combination (harmonic mean) F1:
+classification_report(messages['label'], all_predictions)
+
+#evaluated on same dataset , better way to judge is to divide dataset
+
+from sklearn.cross_validation import StratifiedKFold, cross_val_score, train_test_split
+
+msg_train, msg_test, label_train, label_test = \
+    train_test_split(messages['message'], messages['label'], test_size=0.2)
+
+print len(msg_train), len(msg_test), len(msg_train) + len(msg_test)	
+
+from sklearn.pipeline import Pipeline
+
+
+pipeline = Pipeline([
+    ('bow', CountVectorizer(analyzer=split_into_lemmas)),  # strings to token integer counts
+    ('tfidf', TfidfTransformer()),  # integer counts to weighted TF-IDF scores
+    ('classifier', MultinomialNB()),  # train on TF-IDF vectors w/ Naive Bayes classifier
+])
+
+scores = cross_val_score(pipeline,  # steps to convert raw messages into models
+                         msg_train,  # training data
+                         label_train,  # training labels
+                         cv=10,  # split data randomly into 10 parts: 9 for training, 1 for scoring
+                         scoring='accuracy',  # which scoring metric?
+                         n_jobs=-1,  # -1 = use all cores = faster
+                         )
+						 

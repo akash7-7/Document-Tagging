@@ -29,8 +29,8 @@ cdata = ""
 for i in range(len(full_file_paths)):
     f = open(full_file_paths[i], 'r')
     data= f.read()
-	print(i)
-	cdata= cdata + data
+    print(i)
+    cdata= cdata + data
 
 soup = BeautifulSoup(cdata)
 	

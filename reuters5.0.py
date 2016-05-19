@@ -11,7 +11,7 @@ def get_filepaths(directory):
 
     return file_paths  
 
-path = "C:\\Users\\509861\\Downloads\\reutars\\raw"
+path = "C:\\Users\\Akash Bhople\\Desktop\\reuters\\raw"
 full_file_paths = get_filepaths(path)
                 
 import pandas as pd

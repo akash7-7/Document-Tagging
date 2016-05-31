@@ -1,3 +1,20 @@
+#final cleaning code( can  change porter with lemma)
+
+from nltk.corpus import stopwords
+from nltk.tokenize import wordpunct_tokenize
+from nltk.stem.porter import PorterStemmer
+porter = PorterStemmer()
+import re
+stop_words = set(stopwords.words('english'))
+stop_words.update(['-','.', ',', '"', "'", '?', '!', ':', ';', '(', ')', '[', ']', '{', '}']) # remove it if you need punctuation 
+
+def clean(article):
+	article = re.sub(r'\d+','',article)
+	for articles in article:
+		return [porter.stem(i.lower()) for i in wordpunct_tokenize(article) if i.lower() not in stop_words and len(i)>2]
+		
+		
+###########################################################################################################################
 from nltk.corpus import stopwords
 
 stop_words = stopwords.words("english")
